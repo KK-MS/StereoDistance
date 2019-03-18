@@ -412,7 +412,7 @@ int main3()
 // Disparity
 // https://docs.opencv.org/3.1.0/d3/d14/tutorial_ximgproc_disparity_filtering.html  ***
 
-int main()
+int main1()
 {
 
 	Mat left_image = imread(".\\pics\\cir-ts-03.jpg");//(".\\TS01.jpg", 1);
