@@ -12,144 +12,34 @@
 
 #include <iostream>
 #include <math.h>
-#include <string.h>
+#include <string>
 
 using namespace cv;
 using namespace std;
 
-static void help()
-{
-	cout <<
-		"\nA program using pyramid scaling, Canny, contours, contour simpification and\n"
-		"memory storage to find squares in a list of images\n"
-		"Returns sequence of squares detected on the image.\n"
-		"the sequence is stored in the specified memory storage\n"
-		"Call:\n"
-		"./executable parameters\n"
-		"Using OpenCV version %s\n" << CV_VERSION << "\n" << endl;
-}
 
-
-int threshCanny = 50, N = 5;
+int threshCanny = 100, N = 5;
 const char* wndname = "Square Detection Demo";
 
-// helper function:
-// finds a cosine of angle between vectors
-// from pt0->pt1 and from pt0->pt2
-static double angle(Point pt1, Point pt2, Point pt0)
+
+static void help()
 {
-	double dx1 = pt1.x - pt0.x;
-	double dy1 = pt1.y - pt0.y;
-	double dx2 = pt2.x - pt0.x;
-	double dy2 = pt2.y - pt0.y;
-	return (dx1*dx2 + dy1 * dy2) / sqrt((dx1*dx1 + dy1 * dy1)*(dx2*dx2 + dy2 * dy2) + 1e-10);
-}
-
-// returns sequence of squares detected on the image.
-// the sequence is stored in the specified memory storage
-static void findSquares(const Mat& image, vector<vector<Point> >& squares)
-{
-	squares.clear();
-
-	//s    Mat pyr, timg, gray0(image.size(), CV_8U), gray;
-
-	// down-scale and upscale the image to filter out the noise
-	//pyrDown(image, pyr, Size(image.cols/2, image.rows/2));
-	//pyrUp(pyr, timg, image.size());
-
-
-	// blur will enhance edge detection
-	//Mat timg(image);
-	//medianBlur(image, timg, 9);
-	//Mat gray0(timg.size(), CV_8U);
-	Mat	gray0;
-	Mat	gray;
-
-	vector<vector<Point> > contours;
-
-	cv::cvtColor(image, gray0, CV_BGR2GRAY); // aa added
-		imshow("D1", gray0);
-
-	// find squares in every color plane of the image
-	//for (int c = 0; c < 3; c++)
-	for (int c = 0; c < 1; c++)
-	{
-		//int ch[] = { c, 0 };
-		//mixChannels(&timg, 1, &gray0, 1, ch, 1);
-
-		// try several threshold levels
-		for (int l = 0; l < N; l++)
-		{
-			// hack: use Canny instead of zero threshold level.
-			// Canny helps to catch squares with gradient shading
-			if (l == 0)
-			{
-				// apply Canny. Take the upper threshold from slider
-				// and set the lower to 0 (which forces edges merging)
-				Canny(gray0, gray, 5, threshCanny, 5);
-				// dilate canny output to remove potential
-				// holes between edge segments
-				dilate(gray, gray, Mat(), Point(-1, -1));
-			}
-			else
-			{
-				// apply threshold if l!=0:
-				//     tgray(x,y) = gray(x,y) < (l+1)*255/N ? 255 : 0
-				gray = gray0 >= (l + 1) * 255 / N;
-			}
-
-			// find contours and store them all as a list
-			findContours(gray, contours, RETR_LIST, CHAIN_APPROX_SIMPLE);
-			
-			imshow("D2", gray);
-
-			vector<Point> approx;
-
-			// test each contour
-			for (size_t i = 0; i < contours.size(); i++)
-			{
-				// approximate contour with accuracy proportional
-				// to the contour perimeter
-				approxPolyDP(Mat(contours[i]), approx, arcLength(Mat(contours[i]), true)*0.02, true);
-
-				// square contours should have 4 vertices after approximation
-				// relatively large area (to filter out noisy contours)
-				// and be convex.
-				// Note: absolute value of an area is used because
-				// area may be positive or negative - in accordance with the
-				// contour orientation
-				if (approx.size() == 4 &&
-					fabs(contourArea(Mat(approx))) > 1000 &&
-					isContourConvex(Mat(approx)))
-				{
-					double maxCosine = 0;
-
-					for (int j = 2; j < 5; j++)
-					{
-						// find the maximum cosine of the angle between joint edges
-						double cosine = fabs(angle(approx[j % 4], approx[j - 2], approx[j - 1]));
-						maxCosine = MAX(maxCosine, cosine);
-					}
-
-					// if cosines of all angles are small
-					// (all angles are ~90 degree) then write quandrange
-					// vertices to resultant sequence
-					if (maxCosine < 0.3)
-						squares.push_back(approx);
-				}
-			}
-		}
-	}
+  cout <<
+    "\nA program using pyramid scaling, Canny, contours, contour simpification and\n"
+    "memory storage to find squares in a list of images\n"
+    "Returns sequence of squares detected on the image.\n"
+    "the sequence is stored in the specified memory storage\n"
+    "Call:\n"
+    "./executable parameters\n"
+    "Using OpenCV version %s\n" << CV_VERSION << "\n" << endl;
 }
 
 
 // the function draws all the squares in the image
 static void drawSquares(Mat& image, const vector<vector<Point> >& squares)
 {
-	printf("Number of squares:%d\n ", squares.size());
 
-	for (size_t i = 0; i < squares.size(); i++)
-	{
+	for (size_t i = 0; i < squares.size(); i++) {
 		const Point* p = &squares[i][0];
 
 		int n = (int)squares[i].size();
@@ -158,113 +48,155 @@ static void drawSquares(Mat& image, const vector<vector<Point> >& squares)
 			polylines(image, &p, &n, 1, true, Scalar(0, 255, 0), 3, LINE_AA);
 	}
 
-	imshow(wndname, image);
+	//imshow("D0", image);
+}
+
+void FindRectangles_Init()
+{
+
+}
+
+// helper function:
+// finds a cosine of angle between vectors
+// from pt0->pt1 and from pt0->pt2
+static double angle(Point pt1, Point pt2, Point pt0)
+{
+  double dx1 = pt1.x - pt0.x;
+  double dy1 = pt1.y - pt0.y;
+  double dx2 = pt2.x - pt0.x;
+  double dy2 = pt2.y - pt0.y;
+  return (dx1*dx2 + dy1 * dy2) / sqrt((dx1*dx1 + dy1 * dy1)*(dx2*dx2 + dy2 * dy2) + 1e-10);
+}
+
+// Returns sequence of squares detected on the image.
+// the sequence is stored in the specified memory storage
+//
+// Design: 
+//  A program using pyramid scaling, Canny, contours, contour simpification and\n"
+//  memory storage to find squares in a list of images\n"
+//  Returns sequence of squares detected on the image.\n"
+//  the sequence is stored in the specified memory storage\n"
+//
+// Code flow:
+//  1. Clear the output buffer, squares.clear(); 
+//
+  
+static void FindRectangles_CannyApprox(const Mat& image, vector<vector<Point> >& squares)
+{
+  Mat gray0;
+  Mat gray;
+  vector<vector<Point> > contours;
+
+  imshow("D0", image);
+
+  squares.clear();
+
+  //medianBlur(image, image, 7); // blur will enhance edge detection
+  //imshow("D1", image);
+
+  // apply Canny. Take the upper threshold from slider
+  // and set the lower to 0 (which forces edges merging)
+
+  //Canny(image, gray, 5, threshCanny, 5);
+  //adaptiveThreshold(image, gray, 200, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 3, 0);
+  //adaptiveThreshold(gray0, gray, 200, ADAPTIVE_THRESH_MEAN_C, THRESH_BINARY, 3, 0);
+
+  Canny(image, gray0, 5, threshCanny, 5);
+  imshow("D2", gray0);
+
+
+  // dilate canny output to remove potential holes between edge segments
+  dilate(gray0, gray, Mat(), Point(-1, -1));
+
+  imshow("D3", gray);
+  return ;
+
+
+  // find contours and store them all as a list
+  findContours(gray, contours, RETR_LIST, CHAIN_APPROX_SIMPLE);
+
+  vector<Point> approx;
+
+  // test each contour
+  for (size_t i = 0; i < contours.size(); i++)   {
+    // arcLength(): Calculates a contour perimeter or a curve length.
+    // Parameters:
+    // curve – Input vector of 2D points, stored in std::vector or Mat.
+    // closed – Flag indicating whether the curve is closed or not.
+    //
+    // approxPolyDP():
+    // Parameters:
+    // 1. curve – Input vector of a 2D point stored in :
+    // 2. approxCurve – Result of the approximation. The type should match the type of the input curve. 
+    // 3. epsilon – Parameter specifying the approximation accuracy. This is 
+    //    the maximum distance between the original curve and its approximation.
+    // 4. closed – If true, the approximated curve is closed(its first and last vertices are connected).Otherwise, it is not closed.
+
+    // Design: approximate contour with accuracy proportional
+    //         to the contour perimeter
+    approxPolyDP(Mat(contours[i]), approx, arcLength(Mat(contours[i]), true) * 0.02, true);
+
+    // Design: i. square contours should have 4 vertices after approximation.
+    //        ii. relatively large area (to filter out noisy contours) and 
+    //       iii. be convex.
+    // Note: absolute value of an area is used because
+    // area may be positive or negative - in accordance with the
+    // contour orientation
+    if (approx.size() == 4 &&
+        fabs(contourArea(Mat(approx))) > 1000 &&
+        isContourConvex(Mat(approx))) {
+
+      double maxCosine = 0;
+
+      for (int j = 2; j < 5; j++) {
+        // find the maximum cosine of the angle between joint edges
+        //  j=2: approx 2, 0, 1
+        //  j=3: approx 3, 1, 2
+        //  j=4: approx 0, 2, 3
+        double cosine = fabs(angle(approx[j % 4], approx[j - 2], approx[j - 1]));
+        maxCosine = MAX(maxCosine, cosine);
+      }
+
+      // if cosines of all angles are small
+      // (all angles are ~90 degree) then write quandrange
+      // vertices to resultant sequence
+      if (maxCosine < 0.3)
+        squares.push_back(approx);
+    }
+  }
 }
 
 
-//int mainRectangle(int argc, char** argv)
-int main(int argc, char** argv)
+
+void FindRectangles(std::string strImageSrc, Mat& image)
 {
-	static const char* names[] = { ".\\pics\\atldata\\\\0000009550.png", "manyStickies.jpg",0 };
+  Mat image1;
+  vector<vector<Point> > squares;
 
-	namedWindow("D1", WINDOW_NORMAL);
-	namedWindow("D2", WINDOW_NORMAL);
-	resizeWindow("D1", 600, 600);
-	resizeWindow("D2", 600, 600);
+  // namedWindow("D0", WINDOW_NORMAL);// resizeWindow("D0", Size(640, 480));
+  // namedWindow("D1", WINDOW_NORMAL);// resizeWindow("D1", Size(640, 480));
+  // namedWindow("D2", WINDOW_NORMAL);// resizeWindow("D2", Size(640, 480));
+  // namedWindow("D3", WINDOW_NORMAL);// resizeWindow("D3", Size(640, 480));
+  // namedWindow("D4", WINDOW_NORMAL);// resizeWindow("D4", Size(640, 480));
+  // namedWindow("D9", WINDOW_NORMAL);// resizeWindow("D9", Size(640, 480));
 
-	help();
-#if 1
-	CommandLineParser parser(argc, argv, "{@input_path |0|input path can be a camera id, like 0,1,2 or a video filename}");
+  namedWindow("D0", WINDOW_AUTOSIZE);// resizeWindow("D0", Size(640, 480));
+  namedWindow("D1", WINDOW_AUTOSIZE);// resizeWindow("D1", Size(640, 480));
+  namedWindow("D2", WINDOW_AUTOSIZE);// resizeWindow("D2", Size(640, 480));
+  namedWindow("D3", WINDOW_AUTOSIZE);// resizeWindow("D3", Size(640, 480));
+  namedWindow("D4", WINDOW_AUTOSIZE);// resizeWindow("D4", Size(640, 480));
+  namedWindow("D9", WINDOW_AUTOSIZE);// resizeWindow("D9", Size(640, 480));
 
-	parser.printMessage();
-	string input_path = parser.get<string>(0);
-	string video_name = input_path;
-	VideoCapture video_in;
 
-	if ((isdigit(input_path[0]) && input_path.size() == 1))
-	{
-		int camera_no = input_path[0] - '0';
-		video_in.open(camera_no);
-	}
-	else {
-		video_in.open(video_name);
-	}
-	if (!video_in.isOpened()) {
-		cerr << "Couldn't open " << video_name << endl;
-		return 1;
-	}
-#endif
-	namedWindow(wndname, 1);
-	vector<vector<Point> > squares;
+  cv::cvtColor(image, image1, CV_BGR2GRAY);
 
-#if 0 // Video image
-	for (;;)
-	{
-		Mat image;
+  createTrackbar("T1", "D1", &threshCanny, 255, NULL);
+  
+  FindRectangles_CannyApprox(image1, squares);
+  drawSquares(image, squares);
+  imshow("D9", image);
 
-		video_in >> image;
-
-		if (image.empty())
-		{
-			cout << "Couldn't capture image" << endl;
-			continue;
-		}
-
-		findSquares(image, squares);
-		
-		drawSquares(image, squares);
-
-		//imwrite( "out", image );
-		if (waitKey(1) == 27) break; //quit on ESC button
-
-	}
-#endif 
-#if 0
-	for (int i = 0; names[i] != 0; i++)
-	{
-		Mat image;
-		image = imread(names[i], 1);
-		printf("Image: ch%d, type: %d\n", image.channels(), image.type());
-
-		if (image.empty())
-		{
-			cout << "Couldn't load " << names[i] << endl;
-			continue;
-		}
-
-		findSquares(image, squares);
-		drawSquares(image, squares);
-		//imwrite( "out", image );
-		int c = waitKey();
-		if ((char)c == 27)
-			break;
-	}
-
-#endif // still image
-	createTrackbar("T1", "D1", &threshCanny, 255, NULL);
-#if 1
-	while(1)
-	{
-		Mat image;
-		image = imread(names[0], 1);
-		printf("Image: ch%d, type: %d\n", image.channels(), image.type());
-
-		if (image.empty())
-		{
-			cout << "Couldn't load " << names[0] << endl;
-			continue;
-		}
-
-		findSquares(image, squares);
-		drawSquares(image, squares);
-
-		//imwrite( "out", image );
-		int c = waitKey(10);
-		if ((char)c == 27)
-			break;
-	}
-
-#endif // still image
-
-	return 0;
+  if (squares.size() > 0) {
+    printf("R %d in %s\n", squares.size(), strImageSrc.c_str());
+  }
 }

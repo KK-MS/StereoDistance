@@ -1,0 +1,81 @@
+
+29.Mar.19
+LSD:
+
+Blur + LSD
+It took lsd: 76.8835 Total: 109.033 ms.
+It took lsd: 77.0933 Total: 109.479 ms.
+It took lsd: 78.9694 Total: 112.631 ms.
+It took lsd: 79.5028 Total: 112.508 ms.
+It took lsd: 76.854 Total: 110.399 ms.
+
+CANNY + LSD
+CANNY Thresold: 40
+It took lsd: 344.721 Total: 356.26 ms.
+It took lsd: 337.402 Total: 348.791 ms.
+It took lsd: 337.539 Total: 349.039 ms.
+It took lsd: 345.262 Total: 356.595 ms.
+It took lsd: 340.321 Total: 352.076 ms.
+It took lsd: 342.78 Total: 356.396 ms.
+
+CANNY Thresold: 255
+It took lsd: 280.644 Total: 290.945 ms.
+It took lsd: 274.709 Total: 284.715 ms.
+It took lsd: 281.115 Total: 291.3 ms.
+It took lsd: 286.005 Total: 295.807 ms.
+It took lsd: 277.098 Total: 287.779 ms.
+It took lsd: 276.921 Total: 286.878 ms.
+It took lsd: 280.094 Total: 290.553 ms.
+It took lsd: 274.82 Total: 284.845 ms.
+It took lsd: 278.043 Total: 287.994 ms.
+
+LSD
+REFINE_NONE
+t took lsd: 82.2041 Total: 82.2038 ms.
+It took lsd: 84.2106 Total: 84.2103 ms.
+It took lsd: 82.7074 Total: 82.7071 ms.
+It took lsd: 79.9452 Total: 79.9449 ms.
+It took lsd: 81.1501 Total: 81.1499 ms.
+LSD_REFINE_STD
+It took lsd: 98.107 Total: 98.1067 ms.
+It took lsd: 96.2119 Total: 96.2116 ms.
+It took lsd: 96.7102 Total: 96.7099 ms.
+It took lsd: 101.017 Total: 101.016 ms.
+It took lsd: 96.9213 Total: 96.921 ms.
+It took lsd: 99.0381 Total: 99.0378 ms.
+It took lsd: 96.3201 Total: 96.3198 ms.
+It took lsd: 98.271 Total: 98.2707 ms.
+
+Threshold + LSD
+It took lsd: 61.6509 Total: 61.6507 ms.
+It took lsd: 62.1027 Total: 62.1025 ms.
+It took lsd: 61.4548 Total: 61.4545 ms.
+It took lsd: 61.464 Total: 61.4639 ms.
+It took lsd: 59.8721 Total: 59.8719 ms.
+It took lsd: 61.4976 Total: 61.4974 ms.
+It took lsd: 62.7148 Total: 62.7145 ms.
+
+Thresold + Canny
+ime: 9.7737 ms.
+Time: 8.2396 ms.
+Time: 8.9495 ms.
+Time: 8.7845 ms.
+Time: 8.7348 ms.
+Time: 9.3085 ms.
+Time: 8.1679 ms.
+Time: 10.1857 ms.
+Time: 9.1806 ms.
+Time: 9.5276 ms.
+Time: 9.6504 ms.
+Time: 8.4994 ms.
+Time: 9.5532 ms.
+Time: 9.4872 ms.
+
+Thresold + GussianBlur + Canny
+Time: 12.0632 ms.
+Time: 12.5483 ms.
+Time: 11.7742 ms.
+Time: 13.8841 ms.
+Time: 12.2187 ms.
+Time: 11.4202 ms.
+Time: 11.6148 ms.
