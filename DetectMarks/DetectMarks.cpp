@@ -39,6 +39,7 @@ int main(int argc, char** argv)
   
   int iCameraNum = 0;
   const char *strVideoName = ".\\vids\\movie_2_TireView.avi"; //"dummy.mp4";
+  const char *strVideoOutName = ".\\vids\\Out_movie_2_TireView.avi"; //"dummy.mp4";
   double fps = video_in.get(CV_CAP_PROP_FPS);
   double dMaxFrames = video_in.get(CV_CAP_PROP_FRAME_COUNT);
   double dFrameNum;
@@ -76,9 +77,27 @@ int main(int argc, char** argv)
   //createTrackbar("X", "Canny", &iXVal, 5, NULL);
   //createTrackbar("Y", "Canny", &iYVal, 5, NULL);
 
+  Mat image;
+  video_in >> image;
+
+
+  Size S = Size((int)video_in.get(CV_CAP_PROP_FRAME_WIDTH),    // Acquire input size
+	  (int)video_in.get(CV_CAP_PROP_FRAME_HEIGHT));
+
+  VideoWriter outputVideo;
+  
+  VideoWriter videoOut(strVideoOutName, CV_FOURCC('M', 'J', 'P', 'G'), video_in.get(CV_CAP_PROP_FPS), S);
+  if (!videoOut.isOpened())
+  {
+	  cout << "Could not open the output video for write: " << strVideoOutName << endl;
+	  getchar();
+	  return -1;
+  }
+
+
   for (;;) {
 
-    Mat image;
+
 
     if (iInputMode != INPUT_FILE) {
       // to loop the video
@@ -171,6 +190,7 @@ int main(int argc, char** argv)
 
       printf("Go into DistanceToLane_Main\n");
 		  DistanceToLane_Main("DistanceToLine", image);
+		  videoOut << image;
       //getchar();
 		  break; //FindRectangles(strImgSrc, image); break;
       default:
