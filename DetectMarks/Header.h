@@ -13,5 +13,7 @@ using namespace std;
 void FindRectangles(std::string strImageSrc, cv::Mat &image);
 //void drawSquares(cv::Mat &image, const vector<vector<cv::Point> >& squares);
 
-void FindShapes ( std::string strImageSrc, cv::Mat& image);
-void Lines      ( std::string strImageSrc, cv::Mat& image);
+void FindShapes   ( std::string strImageSrc, cv::Mat& image);
+void Lines        ( std::string strImageSrc, cv::Mat& image);
+int FindDisparity ( std::string strImageSrc, cv::Mat& image);
+void DistanceToLane_Main(std::string strImgSrc, cv::Mat & image);

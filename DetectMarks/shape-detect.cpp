@@ -58,7 +58,13 @@ int ShapeDetect_process(cv::Mat &src)
 
 	// Convert to grayscale
 	cv::Mat gray;
+
 	cv::cvtColor(src, gray, CV_BGR2GRAY);
+	
+	//cv::imshow("Gray", gray);
+	//cv::imwrite(".\\pics\\yellow-white-lines_color.jpg", src);
+	//cv::imwrite(".\\pics\\yellow-white-lines_gray.jpg", gray);
+	//cv::waitKey(0);
 
 	// Use Canny instead of threshold to catch squares with gradient shading
 	cv::Mat bw;
