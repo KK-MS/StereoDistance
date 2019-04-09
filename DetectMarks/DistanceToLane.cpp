@@ -97,22 +97,22 @@ int FindPoints(cv::Mat & source)
 void DistanceToLane_Main(std::string strImgSrc, cv::Mat & image)
 {
   int dDist;
-  int iRoiX = 355;
-  int iRoiY = 859;
-  int iRoiW = 331;
-  int iRoiH = 70;
+  int iRoiX = 1115;
+  int iRoiY = 293;
+  int iRoiW = 397;
+  int iRoiH = 56;
   // Select the ROI
-#if 1
+#if 0
   Rect2d roi = selectROI("Image", image, true, false);
   printf("ROI: %f %f %f %f\n", roi.x, roi.y, roi.width, roi.height);
   iRoiX = roi.x;
   iRoiY = roi.y;
   iRoiW = roi.width;
   iRoiH = roi.height;
-
+  // ROI: 1115.000000 293.000000 397.000000 56.000000
 #else
   Rect2d roi(iRoiX, iRoiY, iRoiW, iRoiH);// x, y, w, h
-  rectangle(image, roi, Scalar(255, 0, 0), 2, 1); // draw the tracked object
+  //rectangle(image, roi, Scalar(255, 0, 0), 2, 1); // draw the tracked object
 #endif
 
 	// Crop image

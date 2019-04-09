@@ -38,7 +38,7 @@ int main(int argc, char** argv)
   VideoCapture video_in;
   
   int iCameraNum = 0;
-  const char *strVideoName = ".\\vids\\cmLaneFishView.avi"; //"dummy.mp4";
+  const char *strVideoName = ".\\vids\\movie_2_TireView.avi"; //"dummy.mp4";
   double fps = video_in.get(CV_CAP_PROP_FPS);
   double dMaxFrames = video_in.get(CV_CAP_PROP_FRAME_COUNT);
   double dFrameNum;
@@ -61,7 +61,7 @@ int main(int argc, char** argv)
     printf("Init video file image. max:%f, cur:%f\n", dMaxFrames, dFrameNum);
 
 	
-	getchar();
+	//getchar();
   }
 
   namedWindow("Image", WINDOW_NORMAL); resizeWindow("Image", Size(640, 480));
@@ -171,17 +171,16 @@ int main(int argc, char** argv)
 
       printf("Go into DistanceToLane_Main\n");
 		  DistanceToLane_Main("DistanceToLine", image);
-      getchar();
+      //getchar();
 		  break; //FindRectangles(strImgSrc, image); break;
       default:
                 continue;
 
     }
 
-
     //imwrite( "out", image );
 
-    cKey = waitKey(2000);
+    cKey = waitKey(10);
     if (cKey == 27) break; // ESC
     else if (cKey == 32) iFileNameIndex = ++iFileNameIndex & iListCount; // ENTER
     else if (cKey == 'c' || cKey == 'd' || cKey == 'e' || cKey == 'l' || cKey == 'r' || cKey == 's' || cKey == 't')
