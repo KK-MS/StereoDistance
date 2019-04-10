@@ -6,8 +6,8 @@
 #include <math.h>
 #include <string>
 
-#include"Header.h"
-#include"Input.h"
+#include "Header.h"
+#include "Input.h"
 
 using namespace cv;
 using namespace std;
@@ -24,7 +24,7 @@ using namespace std;
 #define OUTPUT_NONE  ( 1u)
 #define OUTPUT_FILE  ( 2u)
 #define OUTPUT_VIDEO ( 3u)
-#define OUTPUT_MODE  OUTPUT_VIDEO 
+#define OUTPUT_MODE  OUTPUT_NONE 
 
 static int threshBinary = 150;//80;
 static int iXVal = 1;//80;
@@ -42,7 +42,9 @@ int main(int argc, char** argv)
   int iInputMode = INPUT_VIDEO; //INPUT_FILE;
   int IFileIdx = 1;
   int iLstCnt = 0x3F; // should be a mask
-  const char *sVIn = ".\\vids\\movie_2_TireView.avi"; //"dummy.mp4";
+  //const char *sVIn = ".\\vids\\TSignSensor.avi"; //".\\vids\\movie_2_TireView.avi"; //"dummy.mp4";
+  const char *sVIn = ".\\vids\\Left_right_TS_10Sec.avi"; //movie_2_TireView.avi"; //"dummy.mp4";
+  //const char *sVIn = ".\\vids\\movie_2_TireView.avi"; //"dummy.mp4";
 
   // OUTPUT
   int iOutputMode = OUTPUT_MODE; //INPUT_FILE;
@@ -50,13 +52,16 @@ int main(int argc, char** argv)
   const char *sVOut = ".\\vids\\Out_movie_2_TireView.avi"; //"dummy.mp4";
 
   // PARAMETERS
-  double fps = video_in.get(CV_CAP_PROP_FPS);
-  double dMaxFrames = video_in.get(CV_CAP_PROP_FRAME_COUNT);
+  double fps;
+  double dMaxFrames;
   double dFrameNum;
 
   // PROCESS
   Mat image;
   std::string strImgSrc = "Video or Cam"; // Default to cam or video.
+
+  // Select the algo to test
+  cFindKey = '3';
 
   // Input setup
   if (iInputMode == INPUT_CAMERA) {
@@ -64,30 +69,35 @@ int main(int argc, char** argv)
     if (!video_in.isOpened()) { cerr << "Couldn't open Camera" << iCameraNum << endl; return -1; }
 
   } else if (iInputMode == INPUT_VIDEO) {
+cout << "A" << endl;
     video_in.open(sVIn);
     if (!video_in.isOpened()) { cerr << "Couldn't open " << sVIn << endl; return -1; }
+
     fps = video_in.get(CV_CAP_PROP_FPS);
     dMaxFrames = video_in.get(CV_CAP_PROP_FRAME_COUNT);
     dFrameNum = 0;
-    printf("Init video file image. max:%f, cur:%f\n", dMaxFrames, dFrameNum);
+cout << "B" << endl;
+    printf("Init video file image. fps:%f max:%f, cur:%f\n", fps, dMaxFrames, dFrameNum);
+
   }
 
+
+#if (OUTPUT_MODE == OUTPUT_VIDEO)
   // Output setup
   FrameSize = Size((int)video_in.get(CV_CAP_PROP_FRAME_WIDTH),
       (int)video_in.get(CV_CAP_PROP_FRAME_HEIGHT));
 
   VideoWriter videoOut(sVOut, CV_FOURCC('M', 'J', 'P', 'G'), 
       video_in.get(CV_CAP_PROP_FPS), FrameSize);
-  if (iOutputMode == OUTPUT_VIDEO) {
-    if (!videoOut.isOpened()) {
-      cout << "Could not open the output video: " << sVOut << endl;
-      getchar();
-      return -1;
-    }
+  
+  if (!videoOut.isOpened()) {
+    cout << "Could not open the output video: " << sVOut << endl;
+    getchar();
+    return -1;
   }
+#endif
 
   // Start process
-  cFindKey = '5';
   namedWindow("Image", WINDOW_NORMAL); resizeWindow("Image", Size(640, 480));
 
   for (;;) {
@@ -99,10 +109,8 @@ int main(int argc, char** argv)
         video_in.set(CV_CAP_PROP_POS_FRAMES, 0);
         dFrameNum = 0;
       }
-
       // get the frame
       video_in >> image; 
-      imshow("Image", image);
 
     } else {
       // get the required image
@@ -115,16 +123,22 @@ int main(int argc, char** argv)
 
     switch(cFindKey) {
       case '1': FindShapes(strImgSrc, image); break; 
-      case '2': FindDisparity(strImgSrc, image); break;
+      //case '2': FindDisparity(strImgSrc, image); break;
+      case '2': Disparity(image); break;
       case '3': Lines(strImgSrc, image); break; 
       case '4': FindRectangles(strImgSrc, image); break;
       case '5': DistanceToLane_Main("DistanceToLine", image); break;
       default:  continue;
     }
 
+#if (OUTPUT_MODE == OUTPUT_VIDEO)
     if (iOutputMode == OUTPUT_VIDEO) { videoOut << image; } //imwrite( "out", image );
+#endif
 
-    cKey = waitKey(10);
+
+    imshow("Image", image);
+
+    cKey = waitKey(100);
 
     if (cKey == 27) break; // ESC
     else if (cKey == 32) { IFileIdx = ++IFileIdx & iLstCnt; }
@@ -132,12 +146,21 @@ int main(int argc, char** argv)
         || cKey == '5' || cKey == '6' || cKey == '7') {
       cFindKey = cKey;
     }
+    else if (cKey == 'p') { 
+      printf("\n PAUSED !!. Press r or R to resume. ESC keys to Exit\n");
+      while (1) {
+        char key = (char)waitKey(10);
+        if (key == 27 || key == 'r' || key == 'R' || key == 32) // 'ESC'
+          break;
+      }
+    }
   }
 
   return 0;
 
 errImage:
-  cout << "Couldn't get image!";  
+  cout << "Main: Couldn't get image! Check INPUT!";
+  getchar();
   return -1;
 
 }

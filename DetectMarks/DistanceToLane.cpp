@@ -100,8 +100,9 @@ void DistanceToLane_Main(std::string strImgSrc, cv::Mat & image)
 
   cv::cvtColor(imCrop, gray, CV_BGR2GRAY);
   cv::threshold(gray, OutMat, threshBinary, 255, THRESH_BINARY);
-  namedWindow("Thresold", WINDOW_NORMAL); resizeWindow("Thresold", Size(640, 480));
+  cv::namedWindow("Thresold", WINDOW_NORMAL); cv::resizeWindow("Thresold", Size(640, 480));
   imshow("Thresold", OutMat);
+  
 
   dDistX = FindPoints(OutMat);
   if (dDistX > 0) {
@@ -136,8 +137,8 @@ void DistanceToLane_Main(std::string strImgSrc, cv::Mat & image)
     line(image, pt1, pt2, color, 3);
   }
 
-  imshow("Image", image);
-  getchar();
+  //imshow("Image", image);
+  //getchar();
 }
 
 // see: 

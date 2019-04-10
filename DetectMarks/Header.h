@@ -16,4 +16,5 @@ void FindRectangles(std::string strImageSrc, cv::Mat &image);
 void FindShapes   ( std::string strImageSrc, cv::Mat& image);
 void Lines        ( std::string strImageSrc, cv::Mat& image);
 int FindDisparity ( std::string strImageSrc, cv::Mat& image);
+int Disparity    (cv::Mat& stereoImg);
 void DistanceToLane_Main(std::string strImgSrc, cv::Mat & image);

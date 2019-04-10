@@ -226,6 +226,7 @@ static void FindLinesByThreshold(Mat& matInputImage)
 	Mat OutMat, imgBlur, MatGray;
 	Mat cdst, cdstP;
 
+  double dDist;
 
 
 	createTrackbar("xV", "D1", &xValue, 31, NULL);
@@ -259,14 +260,36 @@ static void FindLinesByThreshold(Mat& matInputImage)
 	vector<Vec4i> linesP; // will hold the results of the detection
 	HoughLinesP(MatGray, linesP, 1, CV_PI / 180, HT, 50, 10); // runs the actual detection
 
+  printf("\n=============================\n");
+float angle;
+    Point p1, p2;
+int xDiffSq, yDiffSq;
+
 	// Draw the lines
 	for (size_t i = 0; i < linesP.size(); i++)
 	{
 		Vec4i l = linesP[i];
-		line(cdstP, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), 3, LINE_AA);
-	}
 
-	imshow("cdstP", cdstP);
+    p1=Point(l[0], l[1]);
+    p2=Point(l[2], l[3]);
+
+    xDiffSq = (p1.x - p2.x) * (p1.x - p2.x);
+    yDiffSq = (p1.y - p2.y) * (p1.y - p2.y);
+
+    angle = atan2(p1.y - p2.y, p1.x - p2.x);
+    dDist = cv::sqrt(xDiffSq + yDiffSq);
+
+    printf("ar:%f dDist:%f x1:%d, x2:%d, y1:%f, y2:%f\n", angle, dDist, l[0], l[2], l[1], l[3]);
+
+    if (dDist > 300) continue;
+    if (abs(angle) > 2.9) continue;
+    printf(" => ar:%f dDist:%f x1:%d, x2:%d, y1:%f, y2:%f\n", angle, dDist, l[0], l[2], l[1], l[3]);
+
+		line(cdstP, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), 3, LINE_AA);
+
+	  imshow("cdstP", cdstP);
+    waitKey(0);
+	}
 
 	//FindLineSegments(OutMat, squares);
 }
@@ -316,3 +339,27 @@ void Lines(std::string strImageSrc, Mat& image)
 
 // Reference:
 // https://medium.com/@galen.ballew/opencv-lanedetection-419361364fc0
+
+// Test observation
+// dDist 1060 for 2 strip and 2 blanks
+// dDist 1623 for 6 strip and 6 blanks
+// dDist 433 for 9 strip and 9 blanks ??
+// dDist 667, 680 for road strip with blank space before
+//
+// Characteristics
+//  dDist:667.724494 x1:383, x2:482, y1:0.000000, y2:50.000000
+//  dDist:680.258039 x1:405, x2:495, y1:0.000000, y2:50.000000
+// Note: X is 0 at bottom left !! 
+// Diff of X1 (405 - 383= 23) of both lines is more that diff of X2 (495 - 482 = 13)
+// This makes sense as strip part near to camera has larger width than edge away from camera
+// Also we can determine if the angle of the line is with in the range, 
+// 1.Angle range differs for outer line and strips.
+// 2.Angle range is different for strips for valid range of condition 
+//   Seems like for strips, valid range is above 45degree and 90 + 45. Clockwise!
+//   !! cool: if I use HoughLines() :  angle is calculated for each line
+//   But I am using HoughLinesP(), thus need to calculate 
+//   see: https://stackoverflow.com/questions/24031701/how-can-i-determine-the-angle-a-line-found-by-houghlines-function-using-opencv
+//   //calculate angle in radian,  if you need it in degrees just do angle * 180 / PI
+//    float angle = atan2(p1.y - p2.y, p1.x - p2.x);
+//  or 45 degres = 0.785398 radians
+//    135 degrees = 2.35619 radians
