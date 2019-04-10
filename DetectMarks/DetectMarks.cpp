@@ -1,5 +1,3 @@
-
-
 #include "opencv2/core/core.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
@@ -15,11 +13,18 @@ using namespace cv;
 using namespace std;
 
 // INPUT MODE SELECT
-#define INPUT_FILE   ( 1u)
-#define INPUT_VIDEO  ( 2u)
-#define INPUT_CAMERA ( 3u)
+#define INPUT_NONE   ( 1u)
+#define INPUT_FILE   ( 2u)
+#define INPUT_VIDEO  ( 3u)
+#define INPUT_CAMERA ( 4u)
 
 #define INPUT_MODE  INPUT_FILE
+
+// INPUT MODE SELECT
+#define OUTPUT_NONE  ( 1u)
+#define OUTPUT_FILE  ( 2u)
+#define OUTPUT_VIDEO ( 3u)
+#define OUTPUT_MODE  OUTPUT_VIDEO 
 
 static int threshBinary = 150;//80;
 static int iXVal = 1;//80;
@@ -31,73 +36,61 @@ int main(int argc, char** argv)
   char cKey;
   char cFindKey = 'r';
 
-  int iInputMode = INPUT_VIDEO; //INPUT_FILE;
-  int iFileNameIndex = 1;
-  int iListCount = 0x3F; // should be a mask
-
-  VideoCapture video_in;
-  
+  // INPUT
   int iCameraNum = 0;
-  const char *strVideoName = ".\\vids\\movie_2_TireView.avi"; //"dummy.mp4";
-  const char *strVideoOutName = ".\\vids\\Out_movie_2_TireView.avi"; //"dummy.mp4";
+  VideoCapture video_in;
+  int iInputMode = INPUT_VIDEO; //INPUT_FILE;
+  int IFileIdx = 1;
+  int iLstCnt = 0x3F; // should be a mask
+  const char *sVIn = ".\\vids\\movie_2_TireView.avi"; //"dummy.mp4";
+
+  // OUTPUT
+  int iOutputMode = OUTPUT_MODE; //INPUT_FILE;
+  Size FrameSize;
+  const char *sVOut = ".\\vids\\Out_movie_2_TireView.avi"; //"dummy.mp4";
+
+  // PARAMETERS
   double fps = video_in.get(CV_CAP_PROP_FPS);
   double dMaxFrames = video_in.get(CV_CAP_PROP_FRAME_COUNT);
   double dFrameNum;
 
+  // PROCESS
+  Mat image;
   std::string strImgSrc = "Video or Cam"; // Default to cam or video.
 
+  // Input setup
   if (iInputMode == INPUT_CAMERA) {
     video_in.open(iCameraNum);
     if (!video_in.isOpened()) { cerr << "Couldn't open Camera" << iCameraNum << endl; return -1; }
-  } 
 
-
-  if (iInputMode == INPUT_VIDEO) {
-    video_in.open(strVideoName);
-    if (!video_in.isOpened()) { cerr << "Couldn't open " << strVideoName << endl; return -1; }
-
+  } else if (iInputMode == INPUT_VIDEO) {
+    video_in.open(sVIn);
+    if (!video_in.isOpened()) { cerr << "Couldn't open " << sVIn << endl; return -1; }
     fps = video_in.get(CV_CAP_PROP_FPS);
     dMaxFrames = video_in.get(CV_CAP_PROP_FRAME_COUNT);
     dFrameNum = 0;
     printf("Init video file image. max:%f, cur:%f\n", dMaxFrames, dFrameNum);
-
-	
-	//getchar();
   }
 
+  // Output setup
+  FrameSize = Size((int)video_in.get(CV_CAP_PROP_FRAME_WIDTH),
+      (int)video_in.get(CV_CAP_PROP_FRAME_HEIGHT));
+
+  VideoWriter videoOut(sVOut, CV_FOURCC('M', 'J', 'P', 'G'), 
+      video_in.get(CV_CAP_PROP_FPS), FrameSize);
+  if (iOutputMode == OUTPUT_VIDEO) {
+    if (!videoOut.isOpened()) {
+      cout << "Could not open the output video: " << sVOut << endl;
+      getchar();
+      return -1;
+    }
+  }
+
+  // Start process
+  cFindKey = '5';
   namedWindow("Image", WINDOW_NORMAL); resizeWindow("Image", Size(640, 480));
-  //namedWindow("Crop", WINDOW_NORMAL); resizeWindow("Crop", Size(640, 480));
-  //namedWindow("Canny", WINDOW_NORMAL); resizeWindow("Canny", Size(640, 480));
-  //namedWindow("Blur", WINDOW_NORMAL); resizeWindow("Blur", Size(640, 480));
-  namedWindow("Thresold", WINDOW_NORMAL); resizeWindow("Thresold", Size(640, 480));
-
-
-  cFindKey = 't';
-  //createTrackbar("T2", "Canny", &threshBinary, 255, NULL);
-  //createTrackbar("X", "Canny", &iXVal, 5, NULL);
-  //createTrackbar("Y", "Canny", &iYVal, 5, NULL);
-
-  Mat image;
-  video_in >> image;
-
-
-  Size S = Size((int)video_in.get(CV_CAP_PROP_FRAME_WIDTH),    // Acquire input size
-	  (int)video_in.get(CV_CAP_PROP_FRAME_HEIGHT));
-
-  VideoWriter outputVideo;
-  
-  VideoWriter videoOut(strVideoOutName, CV_FOURCC('M', 'J', 'P', 'G'), video_in.get(CV_CAP_PROP_FPS), S);
-  if (!videoOut.isOpened())
-  {
-	  cout << "Could not open the output video for write: " << strVideoOutName << endl;
-	  getchar();
-	  return -1;
-  }
-
 
   for (;;) {
-
-
 
     if (iInputMode != INPUT_FILE) {
       // to loop the video
@@ -106,106 +99,39 @@ int main(int argc, char** argv)
         video_in.set(CV_CAP_PROP_POS_FRAMES, 0);
         dFrameNum = 0;
       }
+
+      // get the frame
       video_in >> image; 
-	    imshow("Image", image);
-    }
-    else {
+      imshow("Image", image);
 
-      strImgSrc = aFileNames[iFileNameIndex];
+    } else {
+      // get the required image
+      strImgSrc = aFileNames[IFileIdx];
       image = imread(strImgSrc.c_str());
-
-      cout << "File# " << iFileNameIndex << " Name: " << strImgSrc << endl;
-
+      printf("F: %s, i:%d\n", strImgSrc.c_str(), IFileIdx); 
     }
 
     if (image.empty()) { goto errImage;}
 
-//#if 0
-//    Rect2d r = selectROI("Image", image, true, false);
-//    printf("ROI: %f %f %f %f\n", r.x, r.y, r.width, r.height);
-//
-//#else
-//    Rect2d roi(355, 859, 331, 70);
-//	// draw the tracked object
-//	rectangle(image, roi, Scalar(255, 0, 0), 2, 1);
-//
-//	
-//#endif
-	
-	// Crop image
-//	Mat imCrop = image(roi);
-//	// Display Cropped Image
-//	//imshow("Crop", imCrop);
-//	
-//	cv::Mat gray;
-//
-//	cv::cvtColor(imCrop, gray, CV_BGR2GRAY);
-//	
-//	cv::Mat bw, blurMat, OutMat, sobelMat;
-//	
-//	//GaussianBlur(gray, blurMat, Size(9, 9), 0, 0);
-//
-//	//cv::Canny(blurMat, bw, 0, 50, 5);
-//	// TODO: Convolution Kernel matrix with our own values in matrix that best suits the senario!
-//
-//	// dilate canny output to remove potential holes between edge segments
-//	//dilate(bw, gray, Mat(), Point(-1, -1));
-//	cv::threshold(gray, OutMat, threshBinary, 255, THRESH_BINARY);
-//	
-//	//cv::Canny(OutMat, bw, 0, 50, 5);
-//	
-//	//Sobel(OutMat, sobelMat, CV_8U, 1, 1);
-//	//Sobel(OutMat, sobelMat, CV_8U, iXVal, iYVal);
-//
-//	imshow("Thresold", image);
-//	//imshow("Blur", bw);
-//	//imshow("Crop", sobelMat);
-//	//FindShapes("LANE", OutMat);
-//
-//	//imshow("Image", image);
-//
-//	cKey = waitKey(20);
-	//printf("Show image. max:%f, cur:%f\n", dMaxFrames, dFrameNum);
-	
-	//getchar();
-	//continue;
-
-	////////////////////////////
     switch(cFindKey) {
-      case 'c': case 'e': //FindEllipse(strImgSrc, image); break;
-        printf("c %s, i:%d\n", strImgSrc.c_str(), iFileNameIndex); 
-        FindShapes(strImgSrc, image); 
-        break; 
-	  case 'd': //Find disparity
-		  printf("c %s, i:%d\n", strImgSrc.c_str(), iFileNameIndex);
-		  FindDisparity(strImgSrc, image);
-		  break;
-      case 'l': 
-        //Lines(strImgSrc, image); 
-		
-        break; //FindRectangles(strImgSrc, image); break;
-
-      case 'r': case 's': FindRectangles(strImgSrc, image); break;
-      case 't': 
-
-      printf("Go into DistanceToLane_Main\n");
-		  DistanceToLane_Main("DistanceToLine", image);
-		  videoOut << image;
-      //getchar();
-		  break; //FindRectangles(strImgSrc, image); break;
-      default:
-                continue;
-
+      case '1': FindShapes(strImgSrc, image); break; 
+      case '2': FindDisparity(strImgSrc, image); break;
+      case '3': Lines(strImgSrc, image); break; 
+      case '4': FindRectangles(strImgSrc, image); break;
+      case '5': DistanceToLane_Main("DistanceToLine", image); break;
+      default:  continue;
     }
 
-    //imwrite( "out", image );
+    if (iOutputMode == OUTPUT_VIDEO) { videoOut << image; } //imwrite( "out", image );
 
     cKey = waitKey(10);
-    if (cKey == 27) break; // ESC
-    else if (cKey == 32) iFileNameIndex = ++iFileNameIndex & iListCount; // ENTER
-    else if (cKey == 'c' || cKey == 'd' || cKey == 'e' || cKey == 'l' || cKey == 'r' || cKey == 's' || cKey == 't')
-      cFindKey = cKey;
 
+    if (cKey == 27) break; // ESC
+    else if (cKey == 32) { IFileIdx = ++IFileIdx & iLstCnt; }
+    else if (cKey == '1' || cKey == '2' || cKey == '3' || cKey == '4' 
+        || cKey == '5' || cKey == '6' || cKey == '7') {
+      cFindKey = cKey;
+    }
   }
 
   return 0;
